@@ -1,6 +1,7 @@
 ---
 title: JavaScript 编程规范
-date: 2017-07-31T16:00:00.000Z
+date: "2017-07-31T16:00:00.000Z"
+description: ""
 ---
 
 ### 后端

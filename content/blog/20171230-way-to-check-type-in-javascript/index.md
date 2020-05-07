@@ -1,6 +1,7 @@
 ---
 title: 检测JavaScript 中各种类型
-date: 2017-12-29T16:00:00.000Z
+date: "2017-12-29T16:00:00.000Z"
+description: ""
 ---
 
 ```javascript

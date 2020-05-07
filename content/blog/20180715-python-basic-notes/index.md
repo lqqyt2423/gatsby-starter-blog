@@ -1,6 +1,7 @@
 ---
 title: Python 基础知识点
-date: 2018-07-14T16:00:00.000Z
+date: "2018-07-14T16:00:00.000Z"
+description: ""
 ---
 
 ## string

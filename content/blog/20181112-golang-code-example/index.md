@@ -1,6 +1,7 @@
 ---
 title: Golang Code Example
-date: 2018-11-11T16:00:00.000Z
+date: "2018-11-11T16:00:00.000Z"
+description: ""
 ---
 
 ### echo

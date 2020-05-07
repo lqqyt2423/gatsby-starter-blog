@@ -1,6 +1,7 @@
 ---
 title: express上传文件中间件Multer的使用方法
-date: 2017-06-05T16:00:00.000Z
+date: "2017-06-05T16:00:00.000Z"
+description: ""
 ---
 
 `Multer` 用于处理`multipart/form-data` 类型的表单数据，主要用于上传文件。

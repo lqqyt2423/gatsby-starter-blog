@@ -1,6 +1,7 @@
 ---
 title: mongo 命令行导出数据
-date: 2017-09-05T16:00:00.000Z
+date: "2017-09-05T16:00:00.000Z"
+description: ""
 ---
 
 ### easiest

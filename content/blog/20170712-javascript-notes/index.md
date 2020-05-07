@@ -1,6 +1,7 @@
 ---
 title: JavaScript 高级程序设计学习笔记
-date: 2017-07-11T16:00:00.000Z
+date: "2017-07-11T16:00:00.000Z"
+description: ""
 ---
 
 ## 第1章 JavaScript 简介

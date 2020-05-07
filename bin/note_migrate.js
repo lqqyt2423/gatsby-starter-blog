@@ -30,7 +30,8 @@ for (const filename of notes) {
 
   const newContent = `---
 title: ${title}
-date: ${noteDate.toISOString()}
+date: "${noteDate.toISOString()}"
+description: ""
 ---
 
 ${body}`;

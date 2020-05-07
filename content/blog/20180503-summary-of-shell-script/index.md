@@ -1,6 +1,7 @@
 ---
 title: shell script 知识点总结
-date: 2018-05-02T16:00:00.000Z
+date: "2018-05-02T16:00:00.000Z"
+description: ""
 ---
 
 `read -p` 可以接受用户的输入
