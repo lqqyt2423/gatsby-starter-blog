@@ -1,0 +1,46 @@
+---
+title: 关于我
+date: 2017-05-31T16:00:00.000Z
+---
+
+## 简介
+
+你好，我是李强，职业是程序员。
+
+此博客会记录学习、工作中的一些笔记。内容包括后端、前端、HTTP、数据库等等。
+
+如果有私活介绍、工作介绍、问题咨询等，欢迎联系我。
+
+## 联系方式
+
+邮箱：`974923609@qq.com`
+
+微信：
+
+![](https://liqiang.applinzi.com/static_files/lq_wechat.png)
+
+你也可以在 [GitHub](https://github.com/lqqyt2423) 或 [简书](https://www.jianshu.com/u/5162119b36fa) 上找到我。
+
+## 个人项目
+
+我的个人项目举例如下：
+
+### 微信爬虫
+
+[https://github.com/lqqyt2423/wechat_spider](https://github.com/lqqyt2423/wechat_spider)
+
+基于 HTTPS 中间人攻击原理，用 NodeJs 编写。
+
+如果你需要大量公众号的标题、链接、发布位置、阅读量、点赞量等等字段的数据，可以联系我。
+
+### 番茄小闹钟
+
+![](https://liqiang.applinzi.com/static_files/fanqie_wcode.png)
+
+番茄闹钟微信小程序。
+
+### 此博客
+
+[https://github.com/lqqyt2423/my-blog](https://github.com/lqqyt2423/my-blog)
+
+基于 Golang 编写

@@ -1,0 +1,252 @@
+---
+title: Nginx 学习笔记
+date: 2017-06-09T16:00:00.000Z
+---
+
+## 基本操作
+
+Mac 上安装 Nginx：
+
+```
+brew install nginx
+```
+
+启用 Nginx（可修改此配置文件）：
+
+```
+sudo nginx -c /usr/local/etc/nginx/nginx.conf
+```
+
+Mac 上 Log 文件地址：
+
+```
+/usr/local/var/log/nginx
+```
+
+停止nginx：
+
+```
+ps -ef | grep nginx
+kill -QUIT [主进程号]
+```
+
+确认配置文件语法是否正确：
+
+```
+sudo nginx -t -c /usr/local/etc/nginx/nginx.conf
+```
+
+如果正确，会显示以下提示信息：
+
+```
+nginx: the configuration file /usr/local/etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /usr/local/etc/nginx/nginx.conf test is successful
+```
+
+平滑重启：
+
+```
+sudo kill -HUP [主进程号]
+```
+
+Error log path:
+
+```
+/usr/local/var/log/nginx
+```
+
+## http basic auth
+
+### 1. 生成密码
+
+```shell
+printf "your_username:$(openssl passwd -crypt your_password)\n" >> conf/passwd
+```
+
+### 2. 配置
+
+```nginx
+location /kibana/ {
+  auth_basic "closed site";
+  auth_basic_user_file conf/passwd;
+  rewrite ^/kibana/(.*) /$1 break;
+  proxy_pass http://localhost:5601;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+## Linux 安装配置
+
+配置时指定安装目录为`/usr/local/nginx`，且开启https 解析。
+
+```
+./configure --prefix=/usr/local/nginx --with-http_ssl_module
+make
+make install
+```
+
+开启nginx：
+
+```
+./nginx -c /usr/local/nginx/conf/my.conf
+```
+
+下面是目前服务器的一些配置：
+
+```nginx
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+
+    keepalive_timeout  65;
+
+    server {
+        listen       80;
+        listen       443 ssl;
+        server_name  localhost;
+
+        ssl_certificate      ....pem;
+        ssl_certificate_key  ....key;
+
+        location / {
+            proxy_pass http://localhost:8000;
+        }
+
+        location /auto_deploy/ {
+            proxy_pass http://localhost:8001;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+
+}
+```
+
+## 代理其他端口的webapp 如node
+
+用户在访问网站时，请求先到 nginx 进行处理，如果是 node.js 站点的话，将请求转发到 node.js 的服务，然后再将 node.js 服务的结果返回给用户。
+
+在 nginx 中设置反向代理很简单，一句 `proxy_pass` 就可以搞定：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+        proxy_pass http://localhost:9000;
+    }
+}
+```
+
+如果需要在某路径代理某端口，url 可以rewrite，但需要注意此端口的引用静态文件均要改为相对路径：
+
+```nginx
+server {
+  listen 80;
+  server_name example.com;
+
+  location /app/ {
+    rewrite ^/app/(.*) /$1 break;
+    proxy_pass http://127.0.0.1:3000;
+  }
+}
+```
+
+## 配置PHP时踩的坑
+
+从官网下载PHP 后，`./configure` 需要输入一大堆参数，指定安装的文件夹，安装`php-fpm` 等，然后才`make & make install` 。
+
+### 基本原理
+
+nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，如果是php请求，则发给php解释器处理，并把结果返回给客户端。nginx一般是把请求发fastcgi管理进程处理，fascgi管理进程选择cgi子进程处理结果并返回被nginx。
+
+且需要配置php-fpm：
+
+```
+#复制一份有效的配置文件
+sudo cp /usr/local/php/etc/php-fpm.conf.default.conf  php-fpm.conf
+
+#复制一份有效的用户配置文件，用户名是配置php的时候指定的
+sudo cp /usr/local/php/etc/php-fpm.d/www.conf.default www.conf
+
+#启动php-fpm，mac必须要以root用户启动，-R 参数表示 --allow-to-run-as-root
+sudo /usr/local/php/sbin/php-fpm -R
+
+#查看一下php-fpm是否启动成功
+ps aux | grep php-fpm
+
+#查看9000端口是否已经listen
+netstat -ant | grep 9000
+```
+
+然后还需要配置nginx， 文件地址`/usr/local/etc/nginx/nginx.conf`：
+
+```nginx
+location ~ \.php$ {
+  root           html;
+  fastcgi_pass   127.0.0.1:9000;
+  fastcgi_index  index.php;
+  fastcgi_param  SCRIPT_FILENAME  /usr/local/var/www$fastcgi_script_name;
+  include        fastcgi_params;
+}
+```
+
+上面是最终的配置结果，其实中间经历了`nginx File not found` 的问题，结果解决办法在这个网址：[解决办法](https://stackoverflow.com/questions/17808787/file-not-found-when-running-php-with-nginx)
+
+之后在`/usr/local/var/www/` 此文件夹中编辑一个最简单的php 文件即可检查是否配置成功。这个文件夹有个关于`html` 的链接，所以上面的`root` 选项配置的是`html`。
+
+## 实现二级域名转发
+
+```nginx
+server {
+        listen       80;
+        server_name  *.abc.com;
+
+        if ($http_host ~* "^(.*?)\.abc\.com$") {    #正则表达式
+                set $domain $1;                     #设置变量
+        }
+
+        location / {
+            if ($domain ~* "shop") {
+               proxy_pass http://abc.com:3001;      #域名中有shop，转发到3001端口
+            }
+            if ($domain ~* "mail") {
+               proxy_pass http://abc.com:3002;      #域名中有mail，转发到3002端口
+            }
+
+            tcp_nodelay     on;
+            proxy_set_header Host            $host;
+            proxy_set_header X-Real-IP       $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            #以上三行，目的是将代理服务器收到的用户的信息传到真实服务器上
+
+            root   html;
+            index  index.html index.htm;            #默认情况
+        }
+```
+
+## 参考网址
+
+- [nginx 配置之 proxy_pass 神器！](https://www.web-tinker.com/article/21202.html)
+- [nginx配置location总结及rewrite规则写法](http://seanlook.com/2015/05/17/nginx-location-rewrite/)
+- [nginx配置url重写](https://xuexb.com/post/nginx-url-rewrite.html)
+- [nginx php-fpm安装配置](https://wizardforcel.gitbooks.io/nginx-doc/content/Text/6.5_nginx_php_fpm.html)
+- [nginx和php-fpm基础环境的安装和配置](https://segmentfault.com/a/1190000003067656)
+- [MAC下尝试PHP7 alpha版本的安装](https://segmentfault.com/a/1190000002904436)
+- [Mac下安装PHP开发环境](http://youyusan.github.io/2016/01/30/php-nginx-in-mac/)
+- [php-fpm的安装和启动](https://www.zybuluo.com/phper/note/72879)
+- [编译安装nginx1.9.7+php7.0.0服务器环境](https://segmentfault.com/a/1190000004123048)
+- [nginx实现二级域名转发](https://blog.csdn.net/Metropolis_cn/article/details/73613022)
