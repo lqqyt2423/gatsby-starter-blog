@@ -24,6 +24,7 @@ type Data = {
         }
         fields: {
           slug: string
+          path: string
         }
       }
     }[]
@@ -48,7 +49,7 @@ const BlogIndex = ({ data, location }: PageProps<Data>) => {
                   marginBottom: rhythm(1 / 4),
                 }}
               >
-                <Link style={{ boxShadow: `none` }} to={node.fields.slug}>
+                <Link style={{ boxShadow: `none` }} to={node.fields.path}>
                   {title}
                 </Link>
               </h3>
@@ -83,6 +84,7 @@ export const pageQuery = graphql`
           excerpt
           fields {
             slug
+            path
           }
           frontmatter {
             date(formatString: "MMMM DD, YYYY")
