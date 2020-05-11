@@ -7,6 +7,11 @@ import Layout from "../components/layout"
 import SEO from "../components/seo"
 import { rhythm } from "../utils/typography"
 
+type PageContext = {
+  prevPage: string
+  nextPage: string
+}
+
 type Data = {
   site: {
     siteMetadata: {
@@ -14,7 +19,6 @@ type Data = {
     }
   }
   allMarkdownRemark: {
-    totalCount: number,
     edges: {
       node: {
         excerpt: string
@@ -32,10 +36,11 @@ type Data = {
   }
 }
 
-const BlogIndex = ({ data, location }: PageProps<Data>) => {
+const BlogIndex = ({ data, location, pageContext }: PageProps<Data, PageContext>) => {
   const siteTitle = data.site.siteMetadata.title
   const posts = data.allMarkdownRemark.edges
-  const totalCount = data.allMarkdownRemark.totalCount
+
+  const { prevPage, nextPage } = pageContext
 
   return (
     <Layout location={location} title={siteTitle}>
@@ -81,10 +86,15 @@ const BlogIndex = ({ data, location }: PageProps<Data>) => {
           }}
         >
           <li>
+            {prevPage && (
+              <Link to={prevPage} rel="prev">
+                ← prev
+              </Link>
+            )}
           </li>
           <li>
-            {(totalCount > 10) && (
-              <Link to={'/page/2'} rel="next">
+            {nextPage && (
+              <Link to={nextPage} rel="next">
                 next →
               </Link>
             )}
@@ -98,17 +108,17 @@ const BlogIndex = ({ data, location }: PageProps<Data>) => {
 export default BlogIndex
 
 export const pageQuery = graphql`
-  query {
+  query BlogPage($limit: Int!, $skip: Int!) {
     site {
       siteMetadata {
         title
       }
     }
     allMarkdownRemark(
-      sort: { fields: [frontmatter___date], order: DESC }
-      limit: 10
+      sort: { fields: [frontmatter___date], order: DESC },
+      limit: $limit,
+      skip: $skip
     ) {
-      totalCount
       edges {
         node {
           excerpt

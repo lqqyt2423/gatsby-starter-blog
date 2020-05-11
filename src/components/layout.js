@@ -5,9 +5,10 @@ import { rhythm, scale } from "../utils/typography"
 
 const Layout = ({ location, title, children }) => {
   const rootPath = `${__PATH_PREFIX__}/`
+  const pagePath = rootPath + 'page/'
   let header
 
-  if (location.pathname === rootPath) {
+  if (location.pathname === rootPath || location.pathname.startsWith(pagePath)) {
     header = (
       <h1
         style={{
